@@ -21,8 +21,8 @@ tic
 [Dis, Inds] = pdist2(X',X',configParams.dist_type,'Smallest',configParams.kNN);
 toc
             
-nnData.nnDist = Dis';
-nnData.nnInds = Inds';
+nnData.nnDist = Dis;
+nnData.nnInds = Inds;
 
 % Total number of entries in the W matrix
 numNonZeros = configParams.kNN * M;
@@ -30,22 +30,19 @@ numNonZeros = configParams.kNN * M;
 ind = 1;
 
 % calc the sparse row and column indices
-rowInds = repmat((1:M)',1,configParams.kNN);
-rowInds = rowInds';
-rowInds = rowInds(:)';
-colInds = double(nnData.nnInds');
-colInds = colInds(:)';
-vals    = nnData.nnDist';
-vals    = vals(:)';
+rowInds = repmat((1:M),configParams.kNN,1);
+rowInds = rowInds(:);
+colInds = double(nnData.nnInds(:));
+vals    = nnData.nnDist(:);
 
-autotuneVals = zeros(1,numNonZeros);
+autotuneVals = zeros(numNonZeros,1);
 if configParams.self_tune
     nnAutotune = min(configParams.self_tune,size(nnData.nnDist,2));
-    sigmaKvec = (nnData.nnDist(:,nnAutotune));
+    sigmaKvec = (nnData.nnDist(nnAutotune,:));
 end
 if configParams.self_tune
     for i = 1:M
-        autotuneVals(ind : ind + configParams.kNN - 1) = sigmaKvec(i) * sigmaKvec(nnData.nnInds(i,:));
+        autotuneVals(ind : ind + configParams.kNN - 1) = sigmaKvec(i) * sigmaKvec(nnData.nnInds(:,i));
         ind = ind + configParams.kNN;
     end
 end
