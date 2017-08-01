@@ -34,4 +34,8 @@ elseif dimDMcoords == 1
     diffusionCoordIm = (diffusionCoordIm-minval)/(maxval-minval);
 end
 
+if nargout<1
+    figure;imagesc(diffusionCoordIm);
+end
+
 return

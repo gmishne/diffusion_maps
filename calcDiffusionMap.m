@@ -1,4 +1,4 @@
-function [diffusion_map, Lambda, Psi, Ms] = calcDiffusionMap(K,configParams)
+function [diffusion_map, Lambda, Psi, Ms, Phi, K_rw] = calcDiffusionMap(K,configParams)
 % calculate diffusion map 
 %
 % Gal Mishne
@@ -36,6 +36,7 @@ end
 one_over_D_sqrt = spdiags(sqrt(1./D),0,size(K,1),size(K,2));
 % using symmetric matrix for calculation
 Ms = one_over_D_sqrt * K * one_over_D_sqrt;
+Ms = 0.5*(Ms + Ms');
 % if ~issparse(Ms) && sum(Ms(:)==0)/numel(Ms)>0.75
 %     Ms(Ms<1e-10) = 0;
 %     Ms = sparse(Ms);
@@ -66,10 +67,19 @@ Psi        = Psi./ repmat(sqrt(sum(Psi.^2)),size(Psi,1),1);
 inds       = 2:length(Lambda); % disregarding first trivial eigenvalue
 clear one_over_D_sqrt
 
-Lambda = Lambda .^ configParams.t;
-
 % diffusion map for t=1
-diffusion_map = (Psi(:,inds).*repmat(Lambda(inds)',size(Psi,1),1))';
+diffusion_map = (Psi.*repmat(Lambda'.^ configParams.t,size(Psi,1),1))';
+diffusion_map = diffusion_map(:,inds);
+
+if nargout >= 5
+    D_mat = spdiags(D,0,size(K,1),size(K,2));
+    Phi = D_mat * Psi;
+end
+
+if nargout == 6
+    one_over_D = spdiags(1./D,0,size(K,1),size(K,2));
+    K_rw = one_over_D*K;
+end
 
 % plotting results
 if configParams.plotResults
@@ -84,9 +94,7 @@ if configParams.plotResults
     scatter(1:size(Psi,1),diffusion_map(2,:))
     scatter(1:size(Psi,1),diffusion_map(3,:))
     title('Diffusion Map Coordinates');
-end
 
-if configParams.plotResults
     figure(101);
     scatter3(diffusion_map(1,:),diffusion_map(2,:),diffusion_map(3,:))
     title('Diffusion Map');
