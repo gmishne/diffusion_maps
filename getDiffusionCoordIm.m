@@ -35,7 +35,7 @@ elseif dimDMcoords == 1
 end
 
 if nargout<1
-    figure;imagesc(diffusionCoordIm);
+    gca;imagesc(diffusionCoordIm);
 end
 
 return

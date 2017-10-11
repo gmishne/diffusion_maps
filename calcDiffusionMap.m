@@ -60,16 +60,19 @@ else
     [lambda,I] = sort(diag(lambda),'descend'); %eigs doesn't return the values sorted
     Lambda = lambda(1:configParams.maxInd);
     v    = v(:,I(1:configParams.maxInd));
+    
 end
 
+v        = v./ repmat(sqrt(sum(v.^2)),size(v,1),1);
 Psi        = one_over_D_sqrt * v;
-Psi        = Psi./ repmat(sqrt(sum(Psi.^2)),size(Psi,1),1);
+%Psi        = Psi./ repmat(sqrt(sum(Psi.^2)),size(Psi,1),1);
 inds       = 2:length(Lambda); % disregarding first trivial eigenvalue
 clear one_over_D_sqrt
 
 % diffusion map for t=1
-diffusion_map = (Psi.*repmat(Lambda'.^ configParams.t,size(Psi,1),1))';
-diffusion_map = diffusion_map(:,inds);
+diffusion_map = (Psi./ repmat(sqrt(sum(Psi.^2)),size(Psi,1),1) .* ...
+    repmat(Lambda'.^ configParams.t,size(Psi,1),1));
+diffusion_map = diffusion_map(:,inds)';
 
 if nargout >= 5
     D_mat = spdiags(D,0,size(K,1),size(K,2));
